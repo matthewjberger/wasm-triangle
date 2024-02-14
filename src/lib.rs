@@ -6,10 +6,6 @@ use console_error_panic_hook::set_once as set_panic_hook;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
-pub fn main() {
-    start_app();
-}
-
 pub fn start_app() {
     let event_loop = winit::event_loop::EventLoop::new().unwrap();
 
@@ -18,7 +14,6 @@ pub fn start_app() {
 
     #[cfg(target_arch = "wasm32")]
     {
-        use wasm_bindgen::JsCast;
         use winit::platform::web::WindowBuilderExtWebSys;
         let canvas = web_sys::window()
             .unwrap()
