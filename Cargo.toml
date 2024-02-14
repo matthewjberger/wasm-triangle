@@ -4,10 +4,22 @@ version = "0.1.0"
 authors = ["Matthew Berger <matthewjordanberger@gmail.com>"]
 edition = "2021"
 
+[[bin]]
+name = "wasm-triangle-native"
+path = "src/lib.rs"
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+env_logger = "0.11.2"
+winit = "0.29.10"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+pollster = "0.3.0"
+wgpu = "0.19.1"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1"
 console_log = "1"
 wasm-bindgen = "0.2"
@@ -19,7 +31,6 @@ web-sys = { version = "0.3", features = [
     "Node",
     "Text",
 ] }
-winit = "0.29.10"
 wgpu = { version = "0.19.1", default-features = false, features = [
     "webgl",
     "wgsl",

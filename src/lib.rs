@@ -1,37 +1,58 @@
 #![recursion_limit = "1024"]
 
+#[cfg(target_arch = "wasm32")]
 use console_error_panic_hook::set_once as set_panic_hook;
+
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
-fn start_app() {
+pub fn main() {
+    start_app();
+}
+
+pub fn start_app() {
     let event_loop = winit::event_loop::EventLoop::new().unwrap();
 
     #[allow(unused_mut)]
     let mut builder = winit::window::WindowBuilder::new();
 
-    use winit::platform::web::WindowBuilderExtWebSys;
-    let canvas = web_sys::window()
-        .unwrap()
-        .document()
-        .unwrap()
-        .get_element_by_id("canvas")
-        .unwrap()
-        .dyn_into::<web_sys::HtmlCanvasElement>()
-        .unwrap();
-    builder = builder.with_canvas(Some(canvas));
+    #[cfg(target_arch = "wasm32")]
+    {
+        use wasm_bindgen::JsCast;
+        use winit::platform::web::WindowBuilderExtWebSys;
+        let canvas = web_sys::window()
+            .unwrap()
+            .document()
+            .unwrap()
+            .get_element_by_id("canvas")
+            .unwrap()
+            .dyn_into::<web_sys::HtmlCanvasElement>()
+            .unwrap();
+        builder = builder.with_canvas(Some(canvas));
+    }
 
     let window = builder.build(&event_loop).unwrap();
 
-    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-    console_log::init().expect("could not initialize logger");
-    wasm_bindgen_futures::spawn_local(run_app(event_loop, window));
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        env_logger::init();
+        pollster::block_on(run_app(event_loop, window));
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+        console_log::init().expect("could not initialize logger");
+        wasm_bindgen_futures::spawn_local(run_app(event_loop, window));
+    }
 }
 
+#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(inline_js = "export function snippetTest() { console.log('Hello from JS FFI!'); }")]
 extern "C" {
     fn snippetTest();
 }
 
+#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(start)]
 pub async fn run() {
     set_panic_hook();
