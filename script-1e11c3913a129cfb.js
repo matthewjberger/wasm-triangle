@@ -1,0 +1,1 @@
+var testFromJavaScript=(()=>{console.log(`Hello from JavaScript`)})
